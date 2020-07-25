@@ -23,14 +23,14 @@ def get_address():
     conn = boto.connect_ec2()
     rsvs = conn.get_all_instances()
     for rsv in rsvs:
-        if 'master' in rsv.groups[0].id and len(rsv.instances[0].public_dns_name) > 5:
+        if 'main' in rsv.groups[0].id and len(rsv.instances[0].public_dns_name) > 5:
             address = rsv.instances[0].public_dns_name
             break
     if address is None:
         raise Exception("no servers!")
     return address
 
-def make_master():
+def make_main():
     return '1@%s:5050' % get_address()
 
 def concat_commands(cmds):
@@ -100,7 +100,7 @@ def run_spark_program(prog_name, *args, **kwargs):
     run_cmd(remote_cmd('/root/spark/run %s %s' % (prog_name, ' '.join(map(str,args)))))
     
 def launch_trial(trial_id, *args):
-    run_spark_program("admm.trials.Launcher", make_master(), trial_id, *args, update=True)
+    run_spark_program("admm.trials.Launcher", make_main(), trial_id, *args, update=True)
     
 def launch_trial_kws(trial_id, **kwargs):
     launch_trial(trial_id, *list(chain.from_iterable([map(str,[k,v]) for k,v in kwargs.iteritems()])))
@@ -120,8 +120,8 @@ def store_hdfs(web_address, local_path):
 def store_env_var(name, value):
     run_cmd(remote_cmd('echo export %s=%s >> root/.bashrc' % (name, value)))
 
-def add_master_env_var():
-    store_env_var('master', '$(cat /root/mesos-ec2/cluster-url)')
+def add_main_env_var():
+    store_env_var('main', '$(cat /root/mesos-ec2/cluster-url)')
 
 
 def post_init(big_data = False, small_data = True):
@@ -133,10 +133,10 @@ def post_init(big_data = False, small_data = True):
 
 
 def run_admm_opt(file, nDocs, nFeatures, nSlices, topicIndex, nIters, update=False):
-    run_spark('admm.opt.SLRSparkImmutable %s %i %i %i %i %i' % (make_master(), nDocs ,nFeatures, nSlices, topicIndex, nIters), update=update)
+    run_spark('admm.opt.SLRSparkImmutable %s %i %i %i %i %i' % (make_main(), nDocs ,nFeatures, nSlices, topicIndex, nIters), update=update)
 
-def launch_cluster(n_slaves = 1, i_type = 'm1.small'):
-    run_cmd('./mesos-ec2 -s %i -t %s launch admm' % (n_slaves, i_type))
+def launch_cluster(n_subordinates = 1, i_type = 'm1.small'):
+    run_cmd('./mesos-ec2 -s %i -t %s launch admm' % (n_subordinates, i_type))
 
 def stop_cluster():
     run_cmd('./mesos-ec2 stop admm')

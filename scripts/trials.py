@@ -3,14 +3,14 @@ import pylab as lab
 
 
 
-def features_trial(n_slaves = 1):
-    #    launch_cluster(n_slaves)
+def features_trial(n_subordinates = 1):
+    #    launch_cluster(n_subordinates)
     #    post_init(big_data = False, small_data = True)
     output_path = "/root/trial"
     n_features = [10, 100, 1000]
     n_docs = 1000
-    n_slices = n_slaves * 2
-    host = make_master()
+    n_slices = n_subordinates * 2
+    host = make_main()
     file_path = "/user/root/smalldata"
     topic_index = 0
     n_iters = 3
@@ -42,15 +42,15 @@ def sparsity_trial(sparsities=[.01,.1,1.]):
     
     
     
-def run_samples(n_slaves = 1):
+def run_samples(n_subordinates = 1):
     out_file = '/root/outfile'
-    #    launch_cluster(n_slaves)
+    #    launch_cluster(n_subordinates)
     #    start_cluster()
     post_init(small_data = False, big_data = False)
     n_features = [10, 20 , 50]
     n_iters = 3
     prog_name = 'admm.test.TestAlgorithm'
-    host = make_master()
+    host = make_main()
     cmd = lambda f: '%s 1000 %i .2 .2 .0002 1.0 .5 %i 20 %s %s' % (prog_name, f, n_iters, '%s_%i' % (out_file, f), host)
     for f in n_features:
         run_spark(cmd(f))
